@@ -1,73 +1,45 @@
 @echo off
-color 02
-title 푸른이
-setlocal enabledelayedexpansion
+echo 안녕하세요!! & echo.
 
 :loop
-	echo 1. 자동 실행 추가
-	echo 2. 자동 실행 제거
-	echo 3. 자동 실행 확인
-	echo exit. 나가기
-	set /p option=선택하십시오: 
-	if "%option%"=="1" goto add
-	if "%option%"=="2" goto delete
-	if "%option%"=="3" call :check just & goto loop
-	if "%option%"=="exit" goto end
+	@echo off
+	color 71
+	title 푸른이
+	setlocal enabledelayedexpansion
 
-	:add
-		set /p dir=경로를 입력하십시오:
-		if not "%dir:~-1%"=="\" set "dir=%dir%\"
+	echo (무엇을 하시겠습니까?)
+	echo 1. 침입자 탐지 - 제거
+	echo 2. 자동 실행 프로세스 관리
+	echo 3. 간식 주기
+	echo bye. 안녕!
 
-		for %%A in ("%dir:~0,-1%") do (
-			set "folderName=%%~nxA"
-			set "ext=%%~xA"
-		)
-		if "!folderName!"=="" set "folderName=Shortcut"
+	call :selectionIs
+	goto loop
 
-		echo DEBUG folderName = [%folderName%]
+:detect
+	cd C:\Users\USER\OneDrive\바탕 화면\Command-Center\Personal-Office\P-data\MalwareZero\malzero & start.bat
 
-		if "!ext!"=="" (
-			set "folderPath=%dir%"
-			set "lnkPath=%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup\!folderName!.lnk"
-			echo [%lnkPath%]
+:auto-mng
+	cd C:\Users\USER\OneDrive\바탕 화면\Command-Center\Personal-Office\P-data & cls & auto_manager.bat
+	goto loop
 
-			powershell -NoProfile -Command ^
-			"$s=(New-Object -ComObject WScript.Shell).CreateShortcut('!lnkPath!');" ^
-			"$s.TargetPath='explorer.exe';" ^
-			"$s.Arguments='\"!folderPath!\"';" ^
-			"$s.Save()"
+:feed
 
-		) else (
-			set "command=%dir%"
-			reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Run" /v MyApp /t REG_SZ /d "%command%"
-		)
-		echo 추가 완료
-		goto loop
+:bye
+	echo 또 불러죠!
+	pause
+	exit
 
-	:delete
-		call :check no
-		set /p select=몇 번째를 지우시겠습니까?
-		set "valname=!item%select%!"
-		if "!valname!"=="" (
-			echo 잘못된 번호입니다.
-		) else (
-			reg delete "HKCU\Software\Microsoft\Windows\CurrentVersion\Run" /v "!valname!" /f
-			echo !valname! 항목이 삭제되었습니다.
-		)
-		goto loop
+:selectionIs
+	set /p select=:
 
-	:check
-		set "mode=%1"
-		set /a i=1
-		for /f "delims=" %%a in ('reg query "HKCU\Software\Microsoft\Windows\CurrentVersion\Run" ^| findstr /v "HKEY_"') do (
-			for /f "tokens=1" %%b in ("%%a") do (
-				if /i not "%mode%"=="just" set "item!i!=%%b"
-					echo !i!. %%b
-					set /a i+=1
-				)
-			)
-		set /a itemCount=i-1
-		exit /b
+	if "%select%"=="1" goto detect
+	if "%select%"=="2" goto auto-mng
+	if "%select%"=="3" goto feed
+	if "%select%"=="bye" goto bye
+	if "%select%" neq "1" if "%select%" neq "2" if "%select%" neq "3" if "%select%" neq "bye" (
+	
+	echo ( 명령을 알아듣지 못한 모양이다. )
+	goto loop
 
-	:end
-		exit
+	exit /b
